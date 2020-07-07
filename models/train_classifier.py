@@ -1,3 +1,4 @@
+#import libraries
 import sys
 import sqlalchemy
 from sqlalchemy import create_engine
@@ -15,6 +16,9 @@ from sklearn.metrics import classification_report
 import nltk
 nltk.download(['punkt', 'wordnet'])
 
+
+
+#load files and split into X(features) and Y(labels)
 def load_data(database_filepath):
     engine = create_engine('sqlite:///'+ database_filepath)
     df = pd.read_sql_table('Disaster',engine)
@@ -23,13 +27,17 @@ def load_data(database_filepath):
     Y.drop(['id','message','original','genre'],axis=1,inplace=True)
     return X,Y,Y.columns
 
-
+#tokenize the text
 def tokenize(text):
+    #tokenize
     tokens=word_tokenize(text)
-    
+
+    #initiate a lemmatizer
     lemmatizer=WordNetLemmatizer()
+    
     clean_tokens=[]
     for tok in tokens:
+        #lemmatize and case normalize the texts
         clean_tok=lemmatizer.lemmatize(tok).lower().strip()
         clean_tokens.append(clean_tok)
     
@@ -37,6 +45,7 @@ def tokenize(text):
 
 
 def build_model():
+    #Pipeline
     model = Pipeline([('vect',CountVectorizer(tokenizer=tokenize)),
                     ('tfidf',TfidfTransformer()),
                     ('clf',MultiOutputClassifier(KNeighborsClassifier()))])
@@ -44,6 +53,7 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    #Prediction
     Y_pred=model.predict(X_test)
     for col in category_names:
         idx=Y_test.columns.get_loc(col)
