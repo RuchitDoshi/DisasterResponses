@@ -33,6 +33,38 @@ In a Python script, train_classifier.py, a machine learning pipeline is written 
 * Outputs results on the test set
 * Exports the final model as a pickle file
 
-3. Flask Web App
-An app will be created where an emergency worker can input a new message and get classification results in several categories. The web app will also display visualizations of the data. 
+3. Flask Web App: 
+* An app will be created where an emergency worker can input a new message and get classification results in several categories. The web app will also display visualizations of the data. 
+
+# File Description:
+
+* app folder consists of the file run.py which is used to run the application. It also contains the templates for making an similar application.
+* data folder consists of the csv files and process_data.py file which contains the ETL pipeline. 
+* models folder consists of the train_classifier.py file which contains the ML pipeline. Other files will be stored on the running the file.
+
+# How to run the file and the Web app?
+
+1. Run the following commands in the project's root directory to set up your database and model.
+
+    - To run ETL pipeline that cleans data and stores in database
+        `python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db`
+    - To run ML pipeline that trains classifier and saves
+        `python models/train_classifier.py data/DisasterResponse.db models/classifier.pkl`
+
+2. Run the following command in the app's directory to run your web app.
+    `python run.py`
+    
+    Now, open another Terminal Window. Type
+    `env|grep WORK`
+    
+    In a new web browser window, type in the following:
+    `https://SPACEID-3001.SPACEDOMAIN`
+    
+ # Results: 
+ 
+ The model has been trained on the dataset. Note that the dataset is not uniform across all possible fields i.e. For some fields it has more data points than other fields. Thus, the model may be baised towards some categories. 
+ 
+ The following are the results for the accuracies of the model for each message category: 
+ 
+ 
 
