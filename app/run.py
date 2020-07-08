@@ -1,5 +1,6 @@
 import json
 import plotly
+import numpy as np
 import pandas as pd
 import os
 from nltk.stem import WordNetLemmatizer
@@ -7,7 +8,7 @@ from nltk.tokenize import word_tokenize
 
 from flask import Flask
 from flask import render_template, request, jsonify
-from plotly.graph_objs import Bar
+from plotly.graph_objs import Bar,Line,Scatter
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
 
@@ -46,6 +47,11 @@ def index():
     
     labels=df.copy()
     labels.drop(['id','message','original','genre'],axis=1,inplace=True)
+    
+    f1=np.load('../models/F1_score.npy',allow_pickle=True)
+    accuracy=np.load('../models/Accuracy_score.npy',allow_pickle=True)
+    recall=np.load('../models/Recall_score.npy',allow_pickle=True)
+    precision=np.load('../models/Precision_score.npy',allow_pickle=True)
 
     
     # create visuals
@@ -69,17 +75,73 @@ def index():
                 }
             }
         },
-        {
+                {
             'data':[
-                Bar(
-                    x=labels.sum(),
+                Scatter(
+                    x=labels.columns,
+                    y=accuracy,
+                    mode='markers'
                 )
             ],
-
             'layout':{
-                'title': 'Distribution of Message Categories',
+                'title': 'Accuracy_score of each category of the trained model',
                 'yaxis': {
-                    'title': "Count"
+                    'title': "Accuracy_score"
+                },
+                'xaxis':{
+                    'title': 'Categories'
+                }
+            }
+        },
+        {
+            'data':[
+                Scatter(
+                    x=labels.columns,
+                    y=f1,
+                    mode='markers'
+                    
+                )
+            ],
+            'layout':{
+                'title': 'F1_score of each category of the trained model',
+                'yaxis': {
+                    'title': "F1_score"
+                },
+                'xaxis':{
+                    'title': 'Categories'
+                }
+            }
+        },
+                {
+            'data':[
+                Scatter(
+                    x=labels.columns,
+                    y=recall,
+                    mode='markers'
+                )
+            ],
+            'layout':{
+                'title': 'Recall_score of each category of the trained model',
+                'yaxis': {
+                    'title': "Recall_score"
+                },
+                'xaxis':{
+                    'title': 'Categories'
+                }
+            }
+        },
+                {
+            'data':[
+                Scatter(
+                    x=labels.columns,
+                    y=precision,
+                    mode='markers'
+                )
+            ],
+            'layout':{
+                'title': 'Precision_score of each category of the trained model',
+                'yaxis': {
+                    'title': "Precision_score"
                 },
                 'xaxis':{
                     'title': 'Categories'

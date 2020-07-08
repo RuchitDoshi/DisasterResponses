@@ -1,20 +1,16 @@
-#import libraries
 import sys
 import numpy as np
 import pandas as pd
 import sqlalchemy
 from sqlalchemy import create_engine
+# import sqlite3
 
 
-#function to load and merge .csv files in a DataFrame
 def load_data(messages_filepath, categories_filepath):
     messages = pd.read_csv(messages_filepath)
     categories=pd.read_csv(categories_filepath)
-
-    #merging the two files in one dataFrame
     df = messages.merge(categories,how='outer',on=['id'])
     return df
-
 
 
 def clean_data(df):
@@ -46,15 +42,12 @@ def clean_data(df):
     # check number of duplicates
     duplicateDFRow=df[df.duplicated()]
     
-    #Asserting zero duplicates in the dataframe
     assert(len(duplicateDFRow)==0)
     return df
 
 
 def save_data(df, database_filename):
-    
-    #saving the file to a Database and naming the table as 'Table' 
-    engine = create_engine('sqlite:///' + database_filename)
+    engine = create_engine('sqlite:///'+ database_filename)
     df.to_sql('Table', engine, index=False)
      
 

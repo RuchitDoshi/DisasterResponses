@@ -1,4 +1,3 @@
-#import libraries
 import sys
 import sqlalchemy
 from sqlalchemy import create_engine
@@ -12,32 +11,25 @@ from sklearn.model_selection import train_test_split,GridSearchCV
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report,f1_score,precision_score, recall_score,accuracy_score
 import nltk
 nltk.download(['punkt', 'wordnet'])
 
-
-
-#load files and split into X(features) and Y(labels)
 def load_data(database_filepath):
     engine = create_engine('sqlite:///'+ database_filepath)
-    df = pd.read_sql_table('Disaster',engine)
+    df = pd.read_sql_table('Table',engine)
     X = df['message']
     Y=df.copy()
     Y.drop(['id','message','original','genre'],axis=1,inplace=True)
     return X,Y,Y.columns
 
-#tokenize the text
-def tokenize(text):
-    #tokenize
-    tokens=word_tokenize(text)
 
-    #initiate a lemmatizer
-    lemmatizer=WordNetLemmatizer()
+def tokenize(text):
+    tokens=word_tokenize(text)
     
+    lemmatizer=WordNetLemmatizer()
     clean_tokens=[]
     for tok in tokens:
-        #lemmatize and case normalize the texts
         clean_tok=lemmatizer.lemmatize(tok).lower().strip()
         clean_tokens.append(clean_tok)
     
@@ -45,7 +37,6 @@ def tokenize(text):
 
 
 def build_model():
-    #Pipeline
     model = Pipeline([('vect',CountVectorizer(tokenizer=tokenize)),
                     ('tfidf',TfidfTransformer()),
                     ('clf',MultiOutputClassifier(KNeighborsClassifier()))])
@@ -53,8 +44,12 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
-    #Prediction
     Y_pred=model.predict(X_test)
+    f1=[]
+    recall=[]
+    precision=[]
+    acc=[]
+    
     for col in category_names:
         idx=Y_test.columns.get_loc(col)
         
@@ -64,8 +59,17 @@ def evaluate_model(model, X_test, Y_test, category_names):
         print(classification_report(Y_test.values[:,idx],Y_pred[:,idx]))
         print()
         print('######################################')
-
-
+        f1.append(f1_score(Y_test.values[:,idx],Y_pred[:,idx],average='micro'))
+        recall.append(recall_score(Y_test.values[:,idx],Y_pred[:,idx],average='micro'))
+        acc.append(accuracy_score(Y_test.values[:,idx],Y_pred[:,idx]))
+        precision.append(precision_score(Y_test.values[:,idx],Y_pred[:,idx],average='micro'))
+    
+    np.save('F1_score.npy',np.array(f1))
+    np.save('Recall_score.npy',np.array(recall))
+    np.save('Accuracy_score.npy',np.array(acc))
+    np.save('Precision_score.npy',np.array(precision))
+    
+    
 def save_model(model, model_filepath):
     pickle.dump(model, open(model_filepath, 'wb'))
     
