@@ -65,6 +65,7 @@ In a Python script, train_classifier.py, a machine learning pipeline is written 
  The model has been trained on the dataset. Note that the dataset is not uniform across all possible fields i.e. For some fields it has more data points than other fields. Thus, the model may be baised towards some categories. 
  
  The following are the results for the accuracies of the model for each message category: 
+ ![picture](model_acc.PNG)
  
  
 
