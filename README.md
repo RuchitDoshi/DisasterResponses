@@ -68,4 +68,11 @@ In a Python script, train_classifier.py, a machine learning pipeline is written 
  ![picture](model_acc.PNG)
  
  
+ The Web app can be used to categorize new messages. The interface of the app is as follows:
+ ![picture](web_app.png)
+ 
+ 
+ # Licensing, Authors, and Acknowledgements
+ 
+ Must give credit to FigureEight for the dataset. Thanks to Udacity for helping with the useful tips and guidelines.
 
