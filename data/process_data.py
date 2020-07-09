@@ -7,6 +7,16 @@ from sqlalchemy import create_engine
 
 
 def load_data(messages_filepath, categories_filepath):
+    '''
+    Function to load data and merge them into one file
+    Args: 
+    messages_filepath: Filepath to load the messages.csv
+    categories_filepath: Filepath to load the categories.csv
+    
+    Output:
+    df: combined dataFrame
+    
+    '''
     messages = pd.read_csv(messages_filepath)
     categories=pd.read_csv(categories_filepath)
     df = messages.merge(categories,how='outer',on=['id'])
@@ -14,6 +24,14 @@ def load_data(messages_filepath, categories_filepath):
 
 
 def clean_data(df):
+    '''
+    Function to clean the combined DataFrame and have columns for each category with binary inputs
+    Args: df: Merged dataFrame 
+    
+    Output:
+    df : Clean dataFrame
+    
+    '''
     categories = pd.DataFrame(df['categories'].str.split(';',expand=True))
     row = categories.iloc[0,:]
     category_colnames =row.apply(lambda x:x[:-2]) 
@@ -26,7 +44,11 @@ def clean_data(df):
     
     # convert column from string to numeric
         categories[column] = categories[column].apply(lambda x:int(x))
-        
+    
+    
+    #converting categories into binary format of 1's and 0's
+    categories=categories.apply(lambda x:(x!=0).astype(int))
+    
     # drop the original categories column from `df`
     df=df.drop(['categories'],axis=1,inplace=False)
     
@@ -47,12 +69,22 @@ def clean_data(df):
 
 
 def save_data(df, database_filename):
+    '''
+    Saves the clean DataFrame to the database
+    
+    Args: database_filename: Filepath to store the filename
+    
+    Output:None
+    '''
     engine = create_engine('sqlite:///'+ database_filename)
     df.to_sql('Table', engine, index=False)
      
 
 
 def main():
+    '''
+    Function to combine all above functions
+    '''
     if len(sys.argv) == 4:
 
         messages_filepath, categories_filepath, database_filepath = sys.argv[1:]

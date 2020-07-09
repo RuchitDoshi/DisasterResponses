@@ -16,6 +16,16 @@ import nltk
 nltk.download(['punkt', 'wordnet'])
 
 def load_data(database_filepath):
+    '''
+    Function to load data and split them into features and labels
+    Args: database_filepath: Filepath to load the database in .db format
+    
+    Output:
+    X: features array
+    Y: DataFrame containing all the categories
+    Columns_names: list of column names for all the categories 
+    
+    '''
     engine = create_engine('sqlite:///'+ database_filepath)
     df = pd.read_sql_table('Table',engine)
     X = df['message']
@@ -25,11 +35,21 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
+    '''
+    Function to tokenize, lemmatize and case normalize the messages
+    Args: text: each message in str format
+    
+    Output: list of clean words 
+    '''
+    
+    #Tokenize the text
     tokens=word_tokenize(text)
     
+    #Initial lemmatizer
     lemmatizer=WordNetLemmatizer()
     clean_tokens=[]
     for tok in tokens:
+        #Case normalize and strip words
         clean_tok=lemmatizer.lemmatize(tok).lower().strip()
         clean_tokens.append(clean_tok)
     
@@ -37,13 +57,39 @@ def tokenize(text):
 
 
 def build_model():
-    model = Pipeline([('vect',CountVectorizer(tokenizer=tokenize)),
+    '''
+    Function to build model and GridSearch the parameters
+    Args: None
+    
+    Output: Model with the paramaters on which the gridsearch will take place
+    '''
+    #Build the pipeline
+    pipeline = Pipeline([('vect',CountVectorizer(tokenizer=tokenize)),
                     ('tfidf',TfidfTransformer()),
                     ('clf',MultiOutputClassifier(KNeighborsClassifier()))])
+    
+    #List of Parameters on which GridSearch will take place
+    parameters={'clf__estimator__n_neighbors':[3,5],
+                'clf__estimator__leaf_size':[30,35]}
+    #Build the model with pipeline and paramters
+    model =GridSearchCV(pipeline,param_grid=parameters)
     return model
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    '''
+    Function to evaluate the model and print the classification report on each category
+    Args:
+    model: Trained model 
+    X_test: test set of the features
+    Y_test: test set of the groundtruth values
+    category_names: list of the category_names
+    
+    Output: None
+    
+    '''
+    
+    #Predict the output
     Y_pred=model.predict(X_test)
     f1=[]
     recall=[]
@@ -56,26 +102,31 @@ def evaluate_model(model, X_test, Y_test, category_names):
         print('\033[1m')
         print(col + ':')
         print('\033[0m')
-        print(classification_report(Y_test.values[:,idx],Y_pred[:,idx]))
+        print(classification_report(Y_test.values[:,idx],Y_pred[:,idx]))#prints classification report for each category
         print()
         print('######################################')
-        f1.append(f1_score(Y_test.values[:,idx],Y_pred[:,idx],average='micro'))
-        recall.append(recall_score(Y_test.values[:,idx],Y_pred[:,idx],average='micro'))
+        f1.append(f1_score(Y_test.values[:,idx],Y_pred[:,idx]))
+        recall.append(recall_score(Y_test.values[:,idx],Y_pred[:,idx]))
         acc.append(accuracy_score(Y_test.values[:,idx],Y_pred[:,idx]))
-        precision.append(precision_score(Y_test.values[:,idx],Y_pred[:,idx],average='micro'))
+        precision.append(precision_score(Y_test.values[:,idx],Y_pred[:,idx]))
     
-    np.save('F1_score.npy',np.array(f1))
-    np.save('Recall_score.npy',np.array(recall))
-    np.save('Accuracy_score.npy',np.array(acc))
-    np.save('Precision_score.npy',np.array(precision))
+    # Saves these metrics which is used for visualizations in the Web app
+    np.save('models/F1_score.npy',np.array(f1))
+    np.save('models/Recall_score.npy',np.array(recall))
+    np.save('models/Accuracy_score.npy',np.array(acc))
+    np.save('models/Precision_score.npy',np.array(precision))
     
     
 def save_model(model, model_filepath):
+    #Saves the modelfile
     pickle.dump(model, open(model_filepath, 'wb'))
     
 
 
 def main():
+    '''
+    Combines all the functions
+    '''
     if len(sys.argv) == 3:
         database_filepath, model_filepath = sys.argv[1:]
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))
